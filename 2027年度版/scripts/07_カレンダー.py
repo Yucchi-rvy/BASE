@@ -1,4 +1,4 @@
-"""気学カレンダーと、カレンダー入りのセットの正方形画像（18〜22）を作る。
+"""気学カレンダーと、カレンダー入りのセットの正方形画像（18〜22）と、1・6・9月のサンプル（23〜25）を作る。
 文字の位置・大きさは 03_正方形.py と同じ。01_表紙とバナー.py を先に実行しておくこと。"""
 import os
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -74,3 +74,13 @@ d.text((x0 + wb + gap + wp // 2, yb + 45), 'ポケット版', font=LABEL_F, fill
 d.text((x0 + wb + gap + wp + gap + wc // 2, yb + 45), 'カレンダー（A3）', font=LABEL_F, fill=PURPLE, anchor='mm')
 save(bg, '22_正方形_フルセット2027.jpg')
 print('ok')
+
+# 23-25: sample pages (January / June / September)
+for i, (mon, sub) in enumerate([('1月', '朝日に輝く蓮の写真です'),
+                                ('6月', '雨にぬれる白い蓮の写真です'),
+                                ('9月', '満月の夜に咲く蓮の写真です')]):
+    m = months[i]
+    bg = canvas(); items(bg, [(m, (S - wof(m, H)) // 2, TOP, H)])
+    d = text(bg, f'カレンダーのサンプル（{mon}）', sub)
+    save(bg, f'{23 + i}_サンプル_カレンダー{mon}.jpg')
+print('samples ok')

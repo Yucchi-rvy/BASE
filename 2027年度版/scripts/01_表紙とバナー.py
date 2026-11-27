@@ -21,29 +21,29 @@ front = full.crop((fa[0], fa[1], fb[0], fb[1]))
 fc = front.copy()
 fc.save(f'{OUT}/01_表紙_気学手帳2027.jpg', quality=92)
 
-# ---- 3. banner (BASE main image ratio 3691:2135) ----
+# ---- 3. banner (BASE main image ratio 3691:2135): notebook + lotus calendar ----
 BW = 1920; BH = round(BW * 2135 / 3691)   # 1920 x 1111
-# hide the barcode: blend each column between the rows just above and below it
-bx0, by0 = px(326, 178); bx1, by1 = px(416, 90)
-import numpy as np
-arr = np.asarray(full).astype(np.float32).copy()
-top = arr[by0 - 3:by0].mean(axis=0); bot = arr[by1:by1 + 3].mean(axis=0)
-n = by1 - by0
-for i in range(n):
-    t = i / max(1, n - 1)
-    arr[by0 + i, bx0:bx1] = top[bx0:bx1] * (1 - t) + bot[bx0:bx1] * t
-full = Image.fromarray(arr.clip(0, 255).astype('uint8'))
-# crop: full trim width, height to the banner ratio; top edge just above the
-# cover's "2027" (top ~583pt) so it is fully included and the small 気学手帳 (~84pt) is left out
-x0 = 42.52; x1 = 897.11; hpt = (x1 - x0) * BH / BW
-ya = 600; yb = ya - hpt
-a = px(x0, ya); b = px(x1, yb)
-ban = full.crop((a[0], a[1], b[0], b[1])).resize((BW, BH), Image.LANCZOS)
-# darken left side slightly for legibility
+# background: the purple -> pink gradient from a thin strip along the top of the cover spread
+a = px(42.52, 635.0); b = px(897.11, 595.0)
+ban = full.crop((a[0], a[1], b[0], b[1])).resize((BW, BH), Image.LANCZOS).filter(ImageFilter.GaussianBlur(24))
 ov = Image.new('L', (BW, BH), 0); od = ImageDraw.Draw(ov)
-for x in range(1100):
-    od.line((x, 0, x, BH), fill=int(90 * (1 - x / 1100)))
+for x in range(BW):
+    od.line((x, 0, x, BH), fill=int(110 * max(0, 1 - x / 1300)))
 ban.paste(Image.new('RGB', (BW, BH), (40, 10, 50)), (0, 0), ov)
+
+# products on the right: the calendar behind, the notebook in front of its upper-left part
+# (kept above the calendar's title at the bottom)
+cal = Image.open(os.path.join(ROOT, '元データ', 'カレンダー', '表紙.png')).convert('RGB')
+def put(img, x, y, h):
+    w = round(img.width * h / img.height)
+    sh = Image.new('L', (BW, BH), 0)
+    ImageDraw.Draw(sh).rectangle((x + 16, y + 22, x + w + 16, y + h + 22), fill=150)
+    ban.paste(Image.new('RGB', (BW, BH), (30, 5, 35)), (0, 0), sh.filter(ImageFilter.GaussianBlur(24)))
+    ban.paste(img.resize((w, h), Image.LANCZOS), (x, y))
+CY = (BH - 900) // 2
+put(cal, 1180, CY, 900)
+put(front, 1045, CY + 70, 520)
+
 d = ImageDraw.Draw(ban)
 L = 160; T = BH // 2 - 325   # text block (650px tall) centred vertically
 d.text((L, T), '九星気学グッズ', font=font(SR, 52), fill=GOLD, anchor='ls')
@@ -51,7 +51,7 @@ d.text((L, T + 156), '2027年度版', font=font(SB, 125), fill=WHITE, anchor='ls
 d.text((L, T + 305), '販売開始', font=font(SB, 125), fill=WHITE, anchor='ls')
 d.line((L, T + 364, L + 830, T + 364), fill=GOLD, width=4)
 d.text((L, T + 448), '気学手帳・ポケット版・気学カレンダー', font=font(SR, 46), fill=WHITE, anchor='ls')
-d.text((L, T + 540), 'ネット限定価格　｜　お得なセットは送料無料', font=font(SR, 40), fill=GOLD, anchor='ls')
+d.text((L, T + 540), 'ネット限定価格　｜　手帳は1冊から送料無料', font=font(SR, 40), fill=GOLD, anchor='ls')
 d.text((L, T + 650), 'いのちの樹', font=font(SR, 39), fill=WHITE, anchor='ls')
 ban.save(f'{OUT}/03_バナー_2027販売開始.jpg', quality=92)
 print('ok')
