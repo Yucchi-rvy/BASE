@@ -75,12 +75,7 @@ d.text((x0 + wb + gap + wp + gap + wc // 2, yb + 45), 'カレンダー（A3）',
 save(bg, '22_正方形_フルセット2027.jpg')
 print('ok')
 
-# 23-25: sample pages (January / June / September)
-for i, (mon, sub) in enumerate([('1月', '朝日に輝く蓮の写真です'),
-                                ('6月', '雨にぬれる白い蓮の写真です'),
-                                ('9月', '満月の夜に咲く蓮の写真です')]):
-    m = months[i]
-    bg = canvas(); items(bg, [(m, (S - wof(m, H)) // 2, TOP, H)])
-    d = text(bg, f'カレンダーのサンプル（{mon}）', sub)
-    save(bg, f'{23 + i}_サンプル_カレンダー{mon}.jpg')
+# 23-25: sample pages (January / June / September) — the page itself, no background or text
+for i, mon in enumerate(['1月', '6月', '9月']):
+    months[i].save(os.path.join(OUT, f'{23 + i}_サンプル_カレンダー{mon}.jpg'), quality=92)
 print('samples ok')
