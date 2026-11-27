@@ -21,7 +21,8 @@ front = full.crop((fa[0], fa[1], fb[0], fb[1]))
 fc = front.copy()
 fc.save(f'{OUT}/01_表紙_気学手帳2027.jpg', quality=92)
 
-# ---- 3. banner 1920x720 from the cover spread ----
+# ---- 3. banner (BASE main image ratio 3691:2135) ----
+BW = 1920; BH = round(BW * 2135 / 3691)   # 1920 x 1111
 # hide the barcode: blend each column between the rows just above and below it
 bx0, by0 = px(326, 178); bx1, by1 = px(416, 90)
 import numpy as np
@@ -32,24 +33,25 @@ for i in range(n):
     t = i / max(1, n - 1)
     arr[by0 + i, bx0:bx1] = top[bx0:bx1] * (1 - t) + bot[bx0:bx1] * t
 full = Image.fromarray(arr.clip(0, 255).astype('uint8'))
-# crop: x trim 42.52..897.11, height to 1920:720
-x0 = 42.52; x1 = 897.11; hpt = (x1 - x0) * 720 / 1920
-yc = 304.5; ya = yc + hpt / 2; yb = yc - hpt / 2
+# crop: full trim width, height to the banner ratio; top edge just above the
+# cover's "2027" (top ~583pt) so it is fully included and the small 気学手帳 (~84pt) is left out
+x0 = 42.52; x1 = 897.11; hpt = (x1 - x0) * BH / BW
+ya = 600; yb = ya - hpt
 a = px(x0, ya); b = px(x1, yb)
-ban = full.crop((a[0], a[1], b[0], b[1])).resize((1920, 720), Image.LANCZOS)
+ban = full.crop((a[0], a[1], b[0], b[1])).resize((BW, BH), Image.LANCZOS)
 # darken left side slightly for legibility
-ov = Image.new('L', (1920, 720), 0); od = ImageDraw.Draw(ov)
+ov = Image.new('L', (BW, BH), 0); od = ImageDraw.Draw(ov)
 for x in range(1100):
-    od.line((x, 0, x, 720), fill=int(90 * (1 - x / 1100)))
-ban.paste(Image.new('RGB', (1920, 720), (40, 10, 50)), (0, 0), ov)
+    od.line((x, 0, x, BH), fill=int(90 * (1 - x / 1100)))
+ban.paste(Image.new('RGB', (BW, BH), (40, 10, 50)), (0, 0), ov)
 d = ImageDraw.Draw(ban)
-L = 130
-d.text((L, 150), '九星気学グッズ', font=font(SR, 40), fill=GOLD, anchor='ls')
-d.text((L, 270), '2027年度版', font=font(SB, 96), fill=WHITE, anchor='ls')
-d.text((L, 385), '販売開始', font=font(SB, 96), fill=WHITE, anchor='ls')
-d.line((L, 430, L + 640, 430), fill=GOLD, width=3)
-d.text((L, 495), '気学手帳・ポケット版・気学カレンダー', font=font(SR, 40), fill=WHITE, anchor='ls')
-d.text((L, 565), 'ネット限定価格　｜　お得なセットは送料無料', font=font(SR, 32), fill=GOLD, anchor='ls')
-d.text((L, 650), 'いのちの樹', font=font(SR, 30), fill=WHITE, anchor='ls')
+L = 160; T = BH // 2 - 325   # text block (650px tall) centred vertically
+d.text((L, T), '九星気学グッズ', font=font(SR, 52), fill=GOLD, anchor='ls')
+d.text((L, T + 156), '2027年度版', font=font(SB, 125), fill=WHITE, anchor='ls')
+d.text((L, T + 305), '販売開始', font=font(SB, 125), fill=WHITE, anchor='ls')
+d.line((L, T + 364, L + 830, T + 364), fill=GOLD, width=4)
+d.text((L, T + 448), '気学手帳・ポケット版・気学カレンダー', font=font(SR, 46), fill=WHITE, anchor='ls')
+d.text((L, T + 540), 'ネット限定価格　｜　お得なセットは送料無料', font=font(SR, 40), fill=GOLD, anchor='ls')
+d.text((L, T + 650), 'いのちの樹', font=font(SR, 39), fill=WHITE, anchor='ls')
 ban.save(f'{OUT}/03_バナー_2027販売開始.jpg', quality=92)
 print('ok')
